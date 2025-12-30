@@ -2,7 +2,7 @@ import java.util.*;
 class Solution {
     public int[] solution(String[] keymap, String[] targets) {
         int[] result = new int[targets.length];
-        int[] arr = new int[27];
+        int[] arr = new int[26];
         Arrays.fill(arr, Integer.MAX_VALUE);
         for (String k : keymap) {
             int idx = 0;
