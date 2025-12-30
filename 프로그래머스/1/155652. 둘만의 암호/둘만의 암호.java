@@ -7,27 +7,18 @@ class Solution {
             hs.add(c);
         }
         for (char c : s.toCharArray()) {
-            int id = index;
-            while (id > 0) {
-                if (!hs.contains(c)) {
-                    id--;
-                }
-                
-                
-                if (c + 1 >= 123) {
+            int count = index;
+            while (count > 0) {
+                c++; 
+                if (c > 'z') {
                     c = 'a';
-                    while(hs.contains(c)) {
-                        if (c + 1 >= 123) c = 'a';
-                        else c = (char)(c + 1);
-                    }
-                } else {
-                    c = (char)(c + 1);
-                    while(hs.contains(c)) {
-                        if (c + 1 >= 123) c = 'a';
-                        else c = (char)(c + 1);
-                    }
                 }
-                
+
+                if (hs.contains(c)) {
+                    continue; 
+                }
+
+                count--; 
             }
             answer += String.valueOf(c);
         }
