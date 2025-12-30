@@ -2,35 +2,27 @@ import java.util.*;
 class Solution {
     public int[] solution(String[] keymap, String[] targets) {
         int[] result = new int[targets.length];
-        Map<Character, Integer> map = new HashMap<>();
-
+        int[] arr = new int[27];
+        Arrays.fill(arr, Integer.MAX_VALUE);
         for (String k : keymap) {
-            int si = 1;
+            int idx = 0;
             for (char c : k.toCharArray()) {
-                if (map.containsKey(c)) {
-                    if (si <= map.get(c)) {
-                        map.put(c, si);
-                    }
-                } else {
-                    map.put(c, si);
-                }
-                si++;
+                arr[c - 'A'] = Math.min(idx + 1, arr[c - 'A']);
+                idx++;
             }
         }
 
         int index = 0;
         for (String t : targets) {
-            int r = 0;
+            boolean isOut = false;
             for (char c : t.toCharArray()) {
-                if (map.containsKey(c)) {
-                    r += map.get(c);
-                } else {
-                    r = 0;
+                if (arr[c - 'A'] == Integer.MAX_VALUE) {
+                    isOut = true;
                     break;
                 }
+                result[index] += arr[c - 'A'];
             }
-            if (r == 0) result[index] = -1;
-            else result[index] = r;
+            if (isOut) result[index] = -1;
             index++;
         }
         return result;
