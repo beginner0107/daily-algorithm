@@ -3,27 +3,18 @@ class Solution {
         int answer = 0;
         int cnt1 = 0;
         int cnt2 = 0;
-        char c = '0';
+        char c = ' ';
         for (int i = 0; i < s.length(); i++) {
-            if (cnt1 == 0) {
+            if (cnt1 == cnt2) {
+                answer++;
                 c = s.charAt(i);
+            }
+            if (c == s.charAt(i)) {
                 cnt1++;
-                continue;
             } else {
-                if (c == s.charAt(i)) {
-                    cnt1++;
-                } else {
-                    cnt2++;
-                }
-                if (cnt1 == cnt2) {
-                    cnt1 = 0;
-                    cnt2 = 0;
-                    c = '0';
-                    answer++;
-                }
+                cnt2++;
             }
         }
-        if (c != '0') answer++;
         return answer;
     }
 }
