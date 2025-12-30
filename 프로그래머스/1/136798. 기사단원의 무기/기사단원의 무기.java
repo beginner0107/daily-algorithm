@@ -1,28 +1,20 @@
 class Solution {
     public int solution(int number, int limit, int power) {
         int answer = 0;
+        int[] count = new int[number + 1];
         for (int i = 1; i <= number; i++) {
-            int count = getDivision(i);
-            answer += isOverhead(count, limit) ? power : count;
+            for (int j = i; j <= number; j += i) {
+                count[j]++; 
+            }
+        }
+        
+        for (int i = 1; i < count.length; i++) {
+            answer += isOverhead(count[i], limit) ? power : count[i];
         }
         return answer;
     }
     
     private boolean isOverhead(int c, int l) {
         return c > l;
-    }
-    
-    private int getDivision(int n) {
-        int count = 0;
-        for (int i = 1; i * i <= n; i ++) {
-            if (n % i == 0) {
-                if (i * i == n) {
-                    count += 1;
-} else {
-                    count += 2;
-                }
-            }
-        }
-        return count;
     }
 }
