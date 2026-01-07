@@ -17,15 +17,15 @@ class Solution {
             nums[i - 1] = i;
         }
 
-        backtracking(n, "", k);
+        backtracking(n, new StringBuilder(), k);
         return at;
     }
 
-    private void backtracking(int n, String st, int k) {
+    private void backtracking(int n, StringBuilder st, int k) {
         if (st.length() == n) {
             sc++;
             if (sc == k) {
-                at = st;
+                at = st.toString();
                 ib = true;
             }
             return;
@@ -35,10 +35,10 @@ class Solution {
         for (int i = 0; i < n; i++) {
             if (visited[i]) continue;
             visited[i] = true;
-            st += String.valueOf(nums[i]);
+            st.append(nums[i]);
             backtracking(n, st, k);
             visited[i] = false;
-            st = st.substring(0, st.length() -1);
+            st.deleteCharAt(st.length() - 1);
         }
     }
 }
