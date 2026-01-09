@@ -2,21 +2,21 @@ import java.util.*;
 
 class Solution {
     public int solution(String[][] relation) {
-        Set<Integer> candidatedKeys = new HashSet<>();
+        Set<Integer> candidateKeys = new HashSet<>();
         int rowLen = relation.length;
         int colLen = relation[0].length;
         for (int i = 1; i < (1 << colLen); i++) {
-            if (checkMinimality(i, candidatedKeys)) {
+            if (checkMinimality(i, candidateKeys)) {
                 if (checkUniqueness(i, relation, rowLen, colLen)) {
-                    candidatedKeys.add(i);
+                    candidateKeys.add(i);
                 }
             }
         }
-        return candidatedKeys.size();
+        return candidateKeys.size();
     }
     
-    private boolean checkMinimality(int i, Set<Integer> candidatedKeys) {
-        for (int key : candidatedKeys) {
+    private boolean checkMinimality(int i, Set<Integer> candidateKeys) {
+        for (int key : candidateKeys) {
             if ((key & i) == key) return false;
         }
         return true;
