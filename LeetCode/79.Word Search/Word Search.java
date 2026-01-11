@@ -3,48 +3,27 @@
 
 import java.util.*;
 class Solution {
-    int[] dx = new int[]{-1, 1, 0, 0};
-    int[] dy = new int[]{0, 0, -1, 1};
-    char[][] bd;
-    char[] wd;
-    boolean[][] cb;
-    boolean an;
+    char[][]board;
+    char[] word;
     public boolean exist(char[][] board, String word) {
-        bd = board;
-        wd = word.toCharArray();
-        cb = new boolean[board.length][board[0].length];
-        an = false;
+        this.board = board;
+        this.word = word.toCharArray();
         for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                if (wd[0] != bd[i][j]) continue;
-                cb[i][j] = true;
-                if (dfs(i, j, 1)) {
-                    return true;
-                }
-                cb[i][j] = false;
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] != this.word[0]) continue;
+                if (dfs(0, i, j)) return true;
             }
         }
         return false;
     }
 
-    private boolean dfs(int a, int b, int level) {
-        if (level == wd.length) {
-            return true;
-        }
-        for (int i = 0; i < 4; i++) {
-            int x = dx[i] + a;
-            int y = dy[i] + b;
-            if (x >= 0 && x < bd.length && y >= 0 && y < bd[0].length) {
-                if (bd[x][y] == wd[level] && !cb[x][y]) {
-                    cb[x][y] = true;
-                    if (an || dfs(x, y, level + 1)) {
-                        an = true;
-                        break;
-                    }
-                    cb[x][y] = false;
-                }
-            }
-        }
-        return an ? true : false;
+    public boolean dfs(int index, int x, int y) {
+        if (index == word.length) return true;
+        if (x < 0 || x >= board.length || y < 0 || y >= board[0].length || board[x][y] != word[index]) return false;
+        char temp = board[x][y];
+        board[x][y] = '.';
+        boolean isOk = dfs(index + 1, x + 1, y) || dfs(index + 1, x - 1, y) || dfs(index + 1, x, y + 1) || dfs(index + 1, x, y - 1);
+        board[x][y] = temp;
+        return isOk;
     }
 }
