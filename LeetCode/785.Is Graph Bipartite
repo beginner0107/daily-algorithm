@@ -1,0 +1,31 @@
+// Problem: 785. Is Graph Bipartite? (Medium)
+// Link: https://leetcode.com/problems/is-graph-bipartite
+
+import java.util.*;
+class Solution {
+    public boolean isBipartite(int[][] graph) {
+        int n = graph.length;
+        int[]t = new int[graph.length];
+
+        Queue<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < n; i++) {
+            if (t[i] != 0) continue;
+            queue.add(i);
+            while(!queue.isEmpty()) {
+                int index = queue.poll();
+                if (t[index] == 0) {
+                    t[index] = -1;
+                }
+                int s = t[index] == 1 ? -1 : 1;
+                for (int num : graph[index]) { 
+                    if (t[num] == t[index]) return false;
+                    if (t[num] == 0) {
+                        queue.add(num);
+                        t[num] = s;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+}
