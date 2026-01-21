@@ -42,7 +42,7 @@ public class Main {
         if (count == M) {
             // 퍼트리기 전에 원본 배열을 복사한다.
             int[][] temp = createMap();
-            int[][] tempDistance = createDistance();
+            int[][] tempDistance = new int[temp.length][temp[0].length];
             // 바이러스를 퍼트린다
             bfs(temp, tempDistance);
             // 바이러스가 다 전파되었는지 확인하고, 시간의 최소 값을 구한다.
@@ -114,14 +114,6 @@ public class Main {
         int[][] temp = new int[map.length][map[0].length];
         for (int i = 0; i < map.length; i++) {
             System.arraycopy(map[i], 0, temp[i],0, map[i].length);
-        }
-        return temp;
-    }
-
-    private static int[][] createDistance() {
-        int[][] temp = new int[distance.length][distance[0].length];
-        for (int i = 0; i < distance.length; i++) {
-            System.arraycopy(distance[i], 0, temp[i],0, distance[i].length);
         }
         return temp;
     }
