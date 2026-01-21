@@ -29,7 +29,7 @@ public class Main {
                 if (map[r][c] == 0) empties.add(new int[]{r, c});
                 else if (map[r][c] == 2) {
                     viruses.add(new int[]{r, c});
-                    map[r][c] = 3; // 기본적으로 바이러스가 침투 되어 있지 않은 상태라고 가정
+                    map[r][c] = 3;
                 }
             }
         }
@@ -99,15 +99,10 @@ public class Main {
                 int nr = row + dr[i];
                 int nc = col + dc[i];
                 if (nr >= 0 && nr < temp.length && nc >= 0 && nc < temp[0].length) {
-                    if (temp[nr][nc] == 0) {
+                    if (temp[nr][nc] == 0 || temp[nr][nc] == 3) {
                         tempDistance[nr][nc] = tempDistance[row][col] + 1;
                         temp[nr][nc] = 2;
 
-                        queue.add(new int[]{nr, nc});
-                    }
-                    if (temp[nr][nc] == 3) {
-                        temp[nr][nc] = 2;
-                        tempDistance[nr][nc] = tempDistance[row][col] + 1;
                         queue.add(new int[]{nr, nc});
                     }
                 }
