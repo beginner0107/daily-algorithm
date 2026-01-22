@@ -4,10 +4,8 @@ import java.io.*;
 public class Main {
     static int N, M;
     static char[][] map;
-    // 방문 체크: [빨강행][빨강열][파랑행][파랑열]
+    // [빨강행][빨강열][파랑행][파랑열] 방문 체크
     static boolean[][][][] visited = new boolean[11][11][11][11];
-    static int[] dr = {-1, 1, 0, 0};
-    static int[] dc = {0, 0, -1, 1};
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -16,75 +14,78 @@ public class Main {
         M = Integer.parseInt(st.nextToken());
 
         map = new char[N][M];
-        int rx = 0, ry = 0, bx = 0, by = 0;
+        int[] startRed = new int[2];
+        int[] startBlue = new int[2];
 
         for (int i = 0; i < N; i++) {
             String line = br.readLine();
             for (int j = 0; j < M; j++) {
                 map[i][j] = line.charAt(j);
-                if (map[i][j] == 'R') { rx = i; ry = j; }
-                if (map[i][j] == 'B') { bx = i; by = j; }
+                if (map[i][j] == 'R') { startRed[0] = i; startRed[1] = j; }
+                if (map[i][j] == 'B') { startBlue[0] = i; startBlue[1] = j; }
             }
         }
 
-        if (canEscape(rx, ry, bx, by, 1)) {
+        // 구슬 탈출 1은 성공 여부만 확인 (DFS로도 가능)
+        if (recursive(startRed, startBlue, 1)) {
             System.out.println(1);
         } else {
             System.out.println(0);
         }
     }
 
-    private static boolean canEscape(int rx, int ry, int bx, int by, int count) {
-        // 10번이 넘어가면 실패
-        if (count > 10) return false;
+    private static boolean recursive(int[] redBall, int[] blueBall, int count) {
+        if (count > 10) return false; // 10번 넘으면 실패
+
+        // 현재 상태(빨강 위치, 파랑 위치)를 방문한 적이 있다면 스킵
+        if (visited[redBall[0]][redBall[1]][blueBall[0]][blueBall[1]]) return false;
+        visited[redBall[0]][redBall[1]][blueBall[0]][blueBall[1]] = true;
+
+        // 상, 하, 좌, 우 4가지 방향 시도
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
 
         for (int i = 0; i < 4; i++) {
-            int nrx = rx, nry = ry, nbx = bx, nby = by;
-            boolean redIn = false, blueIn = false;
+            int nrr = redBall[0], nrc = redBall[1];
+            int nbr = blueBall[0], nbc = blueBall[1];
+            int rDist = 0, bDist = 0;
+            boolean rIn = false, bIn = false;
 
-            // 빨간 구슬 이동
-            while (map[nrx + dr[i]][nry + dc[i]] != '#') {
-                nrx += dr[i];
-                nry += dc[i];
-                if (map[nrx][nry] == 'O') {
-                    redIn = true;
-                    break;
-                }
+            // 빨간 구슬 이동 (사용자님의 '끝까지 이동' 로직)
+            while (map[nrr + dr[i]][nrc + dc[i]] != '#') {
+                nrr += dr[i];
+                nrc += dc[i];
+                rDist++;
+                if (map[nrr][nrc] == 'O') { rIn = true; break; }
             }
 
             // 파란 구슬 이동
-            while (map[nbx + dr[i]][nby + dc[i]] != '#') {
-                nbx += dr[i];
-                nby += dc[i];
-                if (map[nbx][nby] == 'O') {
-                    blueIn = true;
-                    break;
-                }
+            while (map[nbr + dr[i]][nbc + dc[i]] != '#') {
+                nbr += dr[i];
+                nbc += dc[i];
+                bDist++;
+                if (map[nbr][nbc] == 'O') { bIn = true; break; }
             }
 
-            // 파란 구슬이 빠지면 실패 (빨간 구슬과 동시에 빠져도 실패)
-            if (blueIn) continue;
+            if (bIn) continue; // 파란 구슬 빠지면 이 방향은 무조건 실패
+            if (rIn) return true; // 빨간 구슬만 빠지면 즉시 성공
 
-            // 빨간 구슬만 빠지면 성공!
-            if (redIn) return true;
-
-            // 두 구슬이 같은 위치일 때 처리 (겹침 방지)
-            if (nrx == nbx && nry == nby) {
-                // 각 방향별로 더 멀리서 온 구슬을 한 칸 뒤로
-                int redDist = Math.abs(nrx - rx) + Math.abs(nry - ry);
-                int blueDist = Math.abs(nbx - bx) + Math.abs(nby - by);
-
-                if (redDist > blueDist) {
-                    nrx -= dr[i]; nry -= dc[i];
+            // 동시에 굴렸는데 같은 위치에 멈춘 경우 (중요!)
+            if (nrr == nbr && nrc == nbc) {
+                // 더 많이 이동한 구슬(즉, 뒤에 있었던 구슬)을 한 칸 뒤로
+                if (rDist > bDist) {
+                    nrr -= dr[i]; nrc -= dc[i];
                 } else {
-                    nbx -= dr[i]; nby -= dc[i];
+                    nbr -= dr[i]; nbc -= dc[i];
                 }
             }
 
-            // 재귀 호출 (하나라도 성공하면 true 반환)
-            if (canEscape(nrx, nry, nbx, nby, count + 1)) return true;
+            // 다음 재귀 호출
+            if (recursive(new int[]{nrr, nrc}, new int[]{nbr, nbc}, count + 1)) return true;
         }
 
+        // 탐색이 끝나면 다른 경로를 위해 방문 체크 해제 (Backtracking)
+        visited[redBall[0]][redBall[1]][blueBall[0]][blueBall[1]] = false;
         return false;
     }
 }
