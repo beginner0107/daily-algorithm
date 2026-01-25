@@ -1,3 +1,4 @@
+import java.util.*;
 /*
 문제 파악
 1) 입출력
@@ -31,7 +32,7 @@ class Solution {
         this.n = n;
         for (int i = 0; i < n; i++) {
             if (!visited[i]) {
-                dfs(i);
+                bfs(i);
                 answer++;
             }
         }
@@ -39,11 +40,18 @@ class Solution {
         return answer;
     }
     
-    public void dfs(int index) {
+    public void bfs(int index) {
+        Queue<Integer> queue = new ArrayDeque<>();
+        queue.add(index);
         visited[index] = true;
-        for (int i = 0; i < n; i++) {
-            if (!visited[i] && computers[index][i] == 1) {
-                dfs(i);
+        while(!queue.isEmpty()) {
+            int n = queue.poll();
+            int [] computer = computers[n];
+            for (int i = 0; i < computer.length; i++) {
+                if (!visited[i] && computer[i] == 1) {
+                    visited[i] = true;
+                    queue.add(i);
+                }
             }
         }
     }
