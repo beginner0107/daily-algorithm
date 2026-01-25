@@ -1,164 +1,173 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayDeque;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.StringTokenizer;
 
 public class Main {
     static int N, M;
-    static int[][] map, passengerIdMap;
-    static int[][] visited;
-    static int visitToken = 0;
+    static int[][] map, pid;
+    static int[][] vis;
+    static int vt = 0;
 
-    static Taxi taxi;
-    static Passenger[] passengerData;
-
-    static final int[] dr = {-1, 1, 0, 0};
-    static final int[] dc = {0, 0, -1, 1};
+    static int tr, tc;
+    static long fuel;
+    static int[] psr, psc, per, pec;
 
     public static void main(String[] args) throws IOException {
-        if (!setup()) return;
+        setup();
 
         for (int i = 0; i < M; i++) {
-            if (!driveOneCycle()) {
-                System.out.println("-1");
-                return;
-            }
+            int[] res = findPassenger();
+            if (res == null) { System.out.println(-1); return; }
+
+            int id = res[0], d1 = res[1];
+            if (fuel < d1) { System.out.println(-1); return; }
+
+            fuel -= d1;
+            tr = psr[id]; tc = psc[id];
+            pid[tr][tc] = 0;
+
+            int d2 = getDist(tr, tc, per[id], pec[id]);
+            if (d2 < 0 || fuel < d2) { System.out.println(-1); return; }
+
+            fuel += d2;
+            tr = per[id]; tc = pec[id];
         }
-        System.out.println(taxi.fuel);
+        System.out.println(fuel);
     }
 
-    private static boolean driveOneCycle() {
-        // 1. 승객 찾기 (PQ를 활용한 조기 종료 BFS)
-        int[] target = findNearestPassenger();
-        if (target == null) return false;
+    static int[] findPassenger() {
+        if (pid[tr][tc] > 0) return new int[]{pid[tr][tc], 0};
 
-        int pId = target[0];
-        int distToStart = target[1];
-        Passenger p = passengerData[pId];
+        vt++;
+        ArrayDeque<int[]> q = new ArrayDeque<>();
+        int bestId = 0, bestR = N + 1, bestC = N + 1, bestD = -1;
 
-        if (taxi.fuel < distToStart) return false;
-
-        taxi.fuel -= distToStart;
-        taxi.r = p.sr; taxi.c = p.sc;
-        passengerIdMap[p.sr][p.sc] = 0;
-
-        // 2. 목적지로 이동
-        int distToDest = getDistance(p.sr, p.sc, p.er, p.ec);
-        if (distToDest == -1 || taxi.fuel < distToDest) return false;
-
-        taxi.fuel += distToDest; // 보너스 (연료 - d + 2d)
-        taxi.r = p.er; taxi.c = p.ec;
-
-        return true;
-    }
-
-    private static int[] findNearestPassenger() {
-        // 제자리 체크
-        if (passengerIdMap[taxi.r][taxi.c] > 0)
-            return new int[]{passengerIdMap[taxi.r][taxi.c], 0};
-
-        visitToken++;
-        // 거리 -> 행 -> 열 순서로 자동 정렬되는 우선순위 큐
-        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) ->
-                a[2] != b[2] ? a[2] - b[2] : (a[0] != b[0] ? a[0] - b[0] : a[1] - b[1])
-        );
-
-        pq.add(new int[]{taxi.r, taxi.c, 0});
-        visited[taxi.r][taxi.c] = visitToken;
-
-        while (!pq.isEmpty()) {
-            int[] curr = pq.poll();
-
-            // 연료보다 먼 거리는 탐색 중단
-            if (curr[2] > taxi.fuel) return null;
-
-            // PQ를 썼으므로 가장 먼저 발견된 승객이 무조건 최우선순위임
-            if (passengerIdMap[curr[0]][curr[1]] > 0) {
-                return new int[]{passengerIdMap[curr[0]][curr[1]], curr[2]};
-            }
-
-            for (int i = 0; i < 4; i++) {
-                int nr = curr[0] + dr[i], nc = curr[1] + dc[i];
-                if (nr < 0 || nr >= N || nc < 0 || nc >= N ||
-                        map[nr][nc] == 1 || visited[nr][nc] == visitToken) continue;
-
-                visited[nr][nc] = visitToken;
-                pq.add(new int[]{nr, nc, curr[2] + 1});
-            }
-        }
-        return null;
-    }
-
-    private static int getDistance(int sr, int sc, int er, int ec) {
-        if (sr == er && sc == ec) return 0;
-        visitToken++;
-
-        Queue<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{sr, sc, 0});
-        visited[sr][sc] = visitToken;
+        q.add(new int[]{tr, tc});
+        vis[tr][tc] = vt;
+        int dist = 0;
 
         while (!q.isEmpty()) {
-            int[] curr = q.poll();
-            if (curr[2] >= taxi.fuel) return -1; // 목적지 가기 전 연료 고갈
+            if (dist > fuel) break;
 
-            for (int i = 0; i < 4; i++) {
-                int nr = curr[0] + dr[i], nc = curr[1] + dc[i];
-                if (nr == er && nc == ec) return curr[2] + 1;
+            int sz = q.size();
+            while (sz-- > 0) {
+                int[] c = q.poll();
+                int r = c[0], cc = c[1];
 
-                if (nr < 0 || nr >= N || nc < 0 || nc >= N ||
-                        map[nr][nc] == 1 || visited[nr][nc] == visitToken) continue;
+                if (pid[r][cc] > 0) {
+                    if (bestD < 0 || r < bestR || (r == bestR && cc < bestC)) {
+                        bestId = pid[r][cc]; bestR = r; bestC = cc; bestD = dist;
+                    }
+                }
 
-                visited[nr][nc] = visitToken;
-                q.add(new int[]{nr, nc, curr[2] + 1});
+                if (r > 0 && map[r - 1][cc] == 0 && vis[r - 1][cc] != vt) {
+                    vis[r - 1][cc] = vt; q.add(new int[]{r - 1, cc});
+                }
+                if (r < N - 1 && map[r + 1][cc] == 0 && vis[r + 1][cc] != vt) {
+                    vis[r + 1][cc] = vt; q.add(new int[]{r + 1, cc});
+                }
+                if (cc > 0 && map[r][cc - 1] == 0 && vis[r][cc - 1] != vt) {
+                    vis[r][cc - 1] = vt; q.add(new int[]{r, cc - 1});
+                }
+                if (cc < N - 1 && map[r][cc + 1] == 0 && vis[r][cc + 1] != vt) {
+                    vis[r][cc + 1] = vt; q.add(new int[]{r, cc + 1});
+                }
+            }
+
+            if (bestD >= 0) return new int[]{bestId, bestD};
+            dist++;
+        }
+        return bestD >= 0 ? new int[]{bestId, bestD} : null;
+    }
+
+    static int getDist(int sr, int sc, int er, int ec) {
+        if (sr == er && sc == ec) return 0;
+        vt++;
+
+        ArrayDeque<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{sr, sc});
+        vis[sr][sc] = vt;
+        int dist = 0;
+
+        while (!q.isEmpty()) {
+            dist++;
+            if (dist > fuel) return -1;
+
+            int sz = q.size();
+            while (sz-- > 0) {
+                int[] c = q.poll();
+                int r = c[0], cc = c[1];
+
+                if (r > 0 && map[r - 1][cc] == 0 && vis[r - 1][cc] != vt) {
+                    if (r - 1 == er && cc == ec) return dist;
+                    vis[r - 1][cc] = vt; q.add(new int[]{r - 1, cc});
+                }
+                if (r < N - 1 && map[r + 1][cc] == 0 && vis[r + 1][cc] != vt) {
+                    if (r + 1 == er && cc == ec) return dist;
+                    vis[r + 1][cc] = vt; q.add(new int[]{r + 1, cc});
+                }
+                if (cc > 0 && map[r][cc - 1] == 0 && vis[r][cc - 1] != vt) {
+                    if (r == er && cc - 1 == ec) return dist;
+                    vis[r][cc - 1] = vt; q.add(new int[]{r, cc - 1});
+                }
+                if (cc < N - 1 && map[r][cc + 1] == 0 && vis[r][cc + 1] != vt) {
+                    if (r == er && cc + 1 == ec) return dist;
+                    vis[r][cc + 1] = vt; q.add(new int[]{r, cc + 1});
+                }
             }
         }
         return -1;
     }
 
-    private static boolean setup() throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        N = Integer.parseInt(st.nextToken());
-        M = Integer.parseInt(st.nextToken());
-        long f = Long.parseLong(st.nextToken());
+    static int idx, bufLen;
+    static byte[] buf = new byte[1 << 17];
+
+    static int read() throws IOException {
+        int n = 0;
+        byte b;
+        // 숫자가 나올 때까지 스킵
+        do {
+            if (idx >= bufLen) {
+                bufLen = System.in.read(buf);
+                idx = 0;
+                if (bufLen <= 0) return n;
+            }
+            b = buf[idx++];
+        } while (b < '0' || b > '9');
+        
+        // 숫자 파싱
+        do {
+            n = n * 10 + (b - '0');
+            if (idx >= bufLen) {
+                bufLen = System.in.read(buf);
+                idx = 0;
+                if (bufLen <= 0) return n;
+            }
+            b = buf[idx++];
+        } while (b >= '0' && b <= '9');
+        
+        return n;
+    }
+
+    static void setup() throws IOException {
+        N = read(); M = read(); fuel = read();
 
         map = new int[N][N];
-        passengerIdMap = new int[N][N];
-        visited = new int[N][N]; // 한 번만 생성
+        pid = new int[N][N];
+        vis = new int[N][N];
 
-        for (int i = 0; i < N; i++) {
-            st = new StringTokenizer(br.readLine());
-            for (int j = 0; j < N; j++) map[i][j] = Integer.parseInt(st.nextToken());
-        }
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                map[i][j] = read();
 
-        st = new StringTokenizer(br.readLine());
-        taxi = new Taxi(Integer.parseInt(st.nextToken()) - 1, Integer.parseInt(st.nextToken()) - 1, f);
+        tr = read() - 1; tc = read() - 1;
 
-        passengerData = new Passenger[M + 1];
+        psr = new int[M + 1]; psc = new int[M + 1];
+        per = new int[M + 1]; pec = new int[M + 1];
+
         for (int i = 1; i <= M; i++) {
-            st = new StringTokenizer(br.readLine());
-            int sr = Integer.parseInt(st.nextToken()) - 1;
-            int sc = Integer.parseInt(st.nextToken()) - 1;
-            int er = Integer.parseInt(st.nextToken()) - 1;
-            int ec = Integer.parseInt(st.nextToken()) - 1;
-            passengerData[i] = new Passenger(i, sr, sc, er, ec);
-            passengerIdMap[sr][sc] = i;
-        }
-        return true;
-    }
-
-    static class Taxi {
-        int r, c; long fuel;
-        Taxi(int r, int c, long f) { this.r = r; this.c = c; this.fuel = f; }
-    }
-
-    static class Passenger {
-        int id, sr, sc, er, ec;
-        Passenger(int id, int sr, int sc, int er, int ec) {
-            this.id = id; this.sr = sr; this.sc = sc; this.er = er; this.ec = ec;
+            psr[i] = read() - 1; psc[i] = read() - 1;
+            per[i] = read() - 1; pec[i] = read() - 1;
+            pid[psr[i]][psc[i]] = i;
         }
     }
 }
