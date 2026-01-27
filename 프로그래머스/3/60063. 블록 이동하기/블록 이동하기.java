@@ -1,91 +1,164 @@
 import java.util.*;
+
 class Solution {
     static int[] dr = {0, 0, 1, -1};
     static int[] dc = {1, -1, 0, 0};
+    
     public int solution(int[][] board) {
-        int answer = bfs(board.length, board);
-        return answer;
+        return bfs(board);
     }
     
-    public int bfs(int n, int[][] board) {
-        Queue<int[]> queue = new ArrayDeque<>();
-        boolean[][][][] visited = new boolean[n][n][n][n];
-        visited[0][0][0][1] = true;
-        queue.add(new int[]{0, 0, 0, 1, 0});
+    public int bfs(int[][] board) {
+        int n = board.length;
+        Queue<Robot> queue = new ArrayDeque<>();
+        Set<Robot> visited = new HashSet<>();
         
-        while(!queue.isEmpty()) {
-            int[] arr = queue.poll();
-            int cr1 = arr[0];
-            int cc1 = arr[1];
-            int cr2 = arr[2];
-            int cc2 = arr[3];
-            int count = arr[4];
-            if ((cr1 == n - 1 && cc1 == n - 1) || (cr2 == n - 1 && cc2 == n - 1)) {
-                return count;
+        Robot start = new Robot(new Point(0, 0), new Point(0, 1), 0);
+        visited.add(start);
+        queue.add(start);
+        
+        while (!queue.isEmpty()) {
+            Robot robot = queue.poll();
+            
+            if (robot.isAtGoal(n)) {
+                return robot.count;
             }
             
-            // 4방향으로 방문해봐야함
+            // 4방향 이동
             for (int i = 0; i < 4; i++) {
-                int ncr1 = cr1 + dr[i]; // (ncr1, ncc1)
-                int ncc1 = cc1 + dc[i];
-                int ncr2 = cr2 + dr[i]; // (ncr2, ncc2)
-                int ncc2 = cc2 + dc[i];
-                
-                // 경계값을 체크한다.
-                if (!(isMove(ncr1, ncc1, board) && isMove(ncr2, ncc2, board))) continue;
-                if (isWall(ncr1, ncc1, board) || isWall(ncr2, ncc2, board)) continue;
-                if (visited[ncr1][ncc1][ncr2][ncc2]) continue;
-                visited[ncr1][ncc1][ncr2][ncc2] = true;
-                queue.add(new int[]{ncr1, ncc1, ncr2, ncc2, count + 1});
+                Robot next = robot.move(dr[i], dc[i]);
+                if (next.isValid(board) && !visited.contains(next)) {
+                    visited.add(next);
+                    queue.add(next);
+                }
             }
             
-            // 이제는 회전하는 거
-            int[] dist = {-1, 1};
-            for (int d : dist) {
-                // cr1 == cr2
-                if (cr1 == cr2) { // 가로로 있는 경우
-                    int ncr1 = cr1 + d; // row는 같으니깐 굳이 ncr2 계산 x
-                    if (!(isMove(ncr1, cc1, board) && isMove(ncr1, cc2, board))) continue;
-                    if (isWall(ncr1, cc1, board) || isWall(ncr1, cc2, board)) continue;
-                    // 방문을 했는지도 판단해야 한다.
-                    if (!visited[cr1][cc1][ncr1][cc1]) { // 
-                        visited[cr1][cc1][ncr1][cc1] = true;
-                        queue.add(new int[]{cr1, cc1, ncr1, cc1, count + 1});
-                    }
-                    if (!visited[cr2][cc2][ncr1][cc2]) { // 
-                        visited[cr2][cc2][ncr1][cc2] = true;
-                        queue.add(new int[]{cr2, cc2, ncr1, cc2, count + 1});
-                    }
-                }
-                // cc1 == cc2
-                if (cc1 == cc2) { // 세로인 경우
-                    int ncc1 = cc1 + d; // row는 같으니깐 굳이 ncr2 계산 x
-                    if (!(isMove(cr1, ncc1, board) && isMove(cr2, ncc1, board))) continue;
-                    if (isWall(cr1, ncc1, board) || isWall(cr2, ncc1, board)) continue;
-                    // 방문을 했는지도 판단해야 한다.
-                    if (!visited[cr1][cc1][cr1][ncc1]) { // 
-                        visited[cr1][cc1][cr1][ncc1] = true;
-                        queue.add(new int[]{cr1, cc1, cr1, ncc1, count + 1});
-                    }
-                    if (!visited[cr2][cc2][cr2][ncc1]) { // 
-                        visited[cr2][cc2][cr2][ncc1] = true;
-                        queue.add(new int[]{cr2, cc2, cr2, ncc1, count + 1});
-                    }
+            // 회전
+            for (Robot rotated : robot.rotate(board)) {
+                if (!visited.contains(rotated)) {
+                    visited.add(rotated);
+                    queue.add(rotated);
                 }
             }
         }
         
         return -1;
     }
+}
+
+class Point {
+    int row, col;
     
-    // 움직일 수 있나 경계값 체크
-    public boolean isMove(int row, int col, int[][] board) {
-        return row >= 0 && row < board.length && col >= 0 && col < board[0].length;
+    Point(int row, int col) {
+        this.row = row;
+        this.col = col;
     }
     
-    // 반드시 isMove 이후에 호출
-    // 벽이면 true, 벽이 아니면 false
-    public boolean isWall(int row, int col, int[][] board) {
+    Point move(int dr, int dc) {
+        return new Point(row + dr, col + dc);
+    }
+    
+    boolean isInBounds(int n) {
+        return row >= 0 && row < n && col >= 0 && col < n;
+    }
+    
+    boolean isWall(int[][] board) {
         return board[row][col] == 1;
+    }
+    
+    boolean isGoal(int n) {
+        return row == n - 1 && col == n - 1;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Point)) return false;
+        Point p = (Point) o;
+        return row == p.row && col == p.col;
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(row, col);
+    }
+}
+
+class Robot {
+    Point p1, p2;
+    int count;
+    
+    Robot(Point p1, Point p2, int count) {
+        // 항상 정렬된 순서로 저장 (일관된 상태 표현)
+        if (p1.row < p2.row || (p1.row == p2.row && p1.col < p2.col)) {
+            this.p1 = p1;
+            this.p2 = p2;
+        } else {
+            this.p1 = p2;
+            this.p2 = p1;
+        }
+        this.count = count;
+    }
+    
+    boolean isHorizontal() {
+        return p1.row == p2.row;
+    }
+    
+    boolean isAtGoal(int n) {
+        return p1.isGoal(n) || p2.isGoal(n);
+    }
+    
+    boolean isValid(int[][] board) {
+        int n = board.length;
+        return p1.isInBounds(n) && p2.isInBounds(n) 
+            && !p1.isWall(board) && !p2.isWall(board);
+    }
+    
+    Robot move(int dr, int dc) {
+        return new Robot(p1.move(dr, dc), p2.move(dr, dc), count + 1);
+    }
+    
+    List<Robot> rotate(int[][] board) {
+        List<Robot> results = new ArrayList<>();
+        int[] dirs = {-1, 1};
+        
+        if (isHorizontal()) {
+            for (int d : dirs) {
+                Point newRow = new Point(p1.row + d, p1.col);
+                if (canRotate(newRow, new Point(p1.row + d, p2.col), board)) {
+                    results.add(new Robot(p1, newRow, count + 1));
+                    results.add(new Robot(p2, new Point(p2.row + d, p2.col), count + 1));
+                }
+            }
+        } else {
+            for (int d : dirs) {
+                Point newCol = new Point(p1.row, p1.col + d);
+                if (canRotate(newCol, new Point(p2.row, p1.col + d), board)) {
+                    results.add(new Robot(p1, newCol, count + 1));
+                    results.add(new Robot(p2, new Point(p2.row, p2.col + d), count + 1));
+                }
+            }
+        }
+        
+        return results;
+    }
+    
+    private boolean canRotate(Point check1, Point check2, int[][] board) {
+        int n = board.length;
+        return check1.isInBounds(n) && check2.isInBounds(n)
+            && !check1.isWall(board) && !check2.isWall(board);
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Robot)) return false;
+        Robot r = (Robot) o;
+        return p1.equals(r.p1) && p2.equals(r.p2);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(p1, p2);
     }
 }
