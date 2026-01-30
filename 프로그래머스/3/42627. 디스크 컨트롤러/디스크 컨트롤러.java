@@ -1,48 +1,35 @@
 import java.util.*;
-
 class Solution {
-    public class Node implements Comparable<Node>{
-        int ix; // 작업 번호
-        int st; // 요청 시점
-        int tt; // 소요 시간
-        
-        Node(int ix, int st, int tt) {
-            this.ix = ix;
-            this.st = st;
-            this.tt = tt;
-        }
-        @Override
-        public int compareTo(Node other) {
-            if (this.tt != other.tt) return Integer.compare(this.tt, other.tt);
-            if (this.st != other.st) return Integer.compare(this.st, other.st);
-            return Integer.compare(this.ix, other.ix);
-        }
-    }
-    
     public int solution(int[][] jobs) {
-        Queue<Node> pq = new PriorityQueue<>();
         Arrays.sort(jobs, (a, b) -> a[0] - b[0]);
-
-        int currentTime = 0;
+        
+        Queue<int[]> queue = new PriorityQueue<>((a, b) -> {
+            if (a[1] != b[1]) return Integer.compare(a[1], b[1]);
+            if (a[0] != b[0]) return Integer.compare(a[0], b[0]);
+            return Integer.compare(a[2], b[2]);
+        });
+        
         int completed = 0;
-        int jobIdx = 0;
-        int totalTurnaroundTime = 0;
-
-        while (completed < jobs.length) {
-            while (jobIdx < jobs.length && jobs[jobIdx][0] <= currentTime) {
-                pq.add(new Node(jobIdx, jobs[jobIdx][0], jobs[jobIdx][1]));
-                jobIdx++;
+        int currentTime = 0;
+        int totalTime = 0;
+        int jobIndex = 0;
+        
+        while(completed < jobs.length) {
+            while (jobIndex < jobs.length && currentTime >= jobs[jobIndex][0]) {
+                queue.add(new int[]{jobs[jobIndex][0], jobs[jobIndex][1], jobIndex});
+                jobIndex++;
             }
-
-            if (pq.isEmpty()) {
-                currentTime = jobs[jobIdx][0];
-            } else {
-                Node cur = pq.poll();
-                currentTime += cur.tt;
-                totalTurnaroundTime += (currentTime - cur.st);
+            
+            if (queue.isEmpty()) {
+                currentTime = jobs[jobIndex][0];
+            }
+            else {
+                int[] arr = queue.poll();
+                currentTime += arr[1];
+                totalTime += (currentTime - arr[0]);
                 completed++;
             }
         }
-        return totalTurnaroundTime / jobs.length;
+        return totalTime / jobs.length;
     }
 }
