@@ -24,8 +24,6 @@ class Solution {
     
     public int solution(int[][] jobs) {
         final int INF = Integer.MAX_VALUE;
-        int[] time = new int[jobs.length];
-        Arrays.fill(time, INF);
         Queue<Node> pq = new PriorityQueue<>();
         Arrays.sort(jobs, (a, b) -> a[0] - b[0]);
 
