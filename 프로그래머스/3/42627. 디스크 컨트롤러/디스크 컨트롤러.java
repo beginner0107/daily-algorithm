@@ -11,9 +11,6 @@ class Solution {
             this.st = st;
             this.tt = tt;
         }
-        // 소요시간이 짧은 것
-        // 작업의 요청 시각이 빠른 것
-        // 작업의 번호가 작은 것
         @Override
         public int compareTo(Node other) {
             if (this.tt != other.tt) return Integer.compare(this.tt, other.tt);
@@ -23,7 +20,6 @@ class Solution {
     }
     
     public int solution(int[][] jobs) {
-        final int INF = Integer.MAX_VALUE;
         Queue<Node> pq = new PriorityQueue<>();
         Arrays.sort(jobs, (a, b) -> a[0] - b[0]);
 
@@ -33,18 +29,14 @@ class Solution {
         int totalTurnaroundTime = 0;
 
         while (completed < jobs.length) {
-            // 현재 시각까지 요청된 모든 작업을 PQ(대기 큐)에 추가
             while (jobIdx < jobs.length && jobs[jobIdx][0] <= currentTime) {
-                // Node 클래스에 작성한 compareTo가 여기서 활용됨
                 pq.add(new Node(jobIdx, jobs[jobIdx][0], jobs[jobIdx][1]));
                 jobIdx++;
             }
 
             if (pq.isEmpty()) {
-                // 대기 중인 작업이 없으면 다음 작업의 요청 시각으로 시각 업데이트
                 currentTime = jobs[jobIdx][0];
             } else {
-                // 대기 중인 작업 중 가장 우선순위 높은 것 수행
                 Node cur = pq.poll();
                 currentTime += cur.tt;
                 totalTurnaroundTime += (currentTime - cur.st);
