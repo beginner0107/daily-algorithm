@@ -7,7 +7,6 @@ class Solution {
     public int[] findOrder(int numCourses, int[][] prerequisites) {
         int[] indegree = new int[numCourses];
         int[] order = new int[numCourses];
-        boolean[] visited = new boolean[numCourses];
 
         List<List<Integer>> graph = new ArrayList<>();
         for (int i = 0; i < numCourses; i++) graph.add(new ArrayList<>());
@@ -21,7 +20,6 @@ class Solution {
         for (int i = 0; i < numCourses; i++) {
             if (indegree[i] == 0) {
                 order[count] = i;
-                visited[i] = true;
                 queue.add(i);
                 count++;
             }
@@ -33,23 +31,12 @@ class Solution {
                 indegree[nxt]--;
                 if (indegree[nxt] == 0) {
                     order[count] = nxt;
-                    visited[nxt] = true;
                     queue.add(nxt);
                     count++;
                 }
             }
         }
 
-        int val = -1;
-        for (int i = 0; i < indegree.length; i++) {
-            if (order[i] == 0 && val == -1) {
-                val = 0;
-            }
-            else if (val == 0 && order[i] == 0) {
-                return new int[]{};
-            }
-        }
-
-        return order;
+        return count != numCourses ? new int[]{} : order;
     }
 }
