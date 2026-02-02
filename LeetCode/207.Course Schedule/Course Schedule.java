@@ -5,29 +5,31 @@ import java.util.*;
 
 class Solution {
     public boolean canFinish(int numCourses, int[][] prerequisites) {
+        int[] indegree = new int[numCourses];
+
         List<List<Integer>> graph = new ArrayList<>();
-        int[] indegree = new int[numCourses]; 
         for (int i = 0; i < numCourses; i++) graph.add(new ArrayList<>());
         for (int[] pre : prerequisites) {
             graph.get(pre[1]).add(pre[0]);
             indegree[pre[0]]++;
         }
-        Queue<Integer> queue = new ArrayDeque<>();
+
         int count = 0;
+        Queue<Integer> q = new ArrayDeque<>();
         for (int c = 0; c < numCourses; c++) {
             if (indegree[c] == 0) {
-                queue.add(c);
+                q.add(c);
                 count++;
             }
         }
 
-        while (!queue.isEmpty()) {
-            int cur = queue.poll();
-            for (int next : graph.get(cur)) {
-                indegree[next]--;
-                if (indegree[next] == 0) {
+        while (!q.isEmpty()) {
+            int cur = q.poll();
+            for (int nxt : graph.get(cur)) {
+                indegree[nxt]--;
+                if (indegree[nxt] == 0) {
+                    q.add(nxt);
                     count++;
-                    queue.add(next);
                 }
             }
         }
