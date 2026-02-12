@@ -1,0 +1,23 @@
+// Problem: 198. 집 강도 (중간)
+// Link: https://leetcode.com/problems/house-robber
+
+class Solution {
+    public int rob(int[] nums) {
+        int[] ans = new int[nums.length];
+        if (nums.length == 1) return nums[0];
+        int INF = Integer.MIN_VALUE;
+        int maxVal = INF;
+        ans[0] = nums[0];
+        ans[1] = nums[1];
+        maxVal = Math.max(ans[0], ans[1]);
+        for (int i = 2; i < ans.length; i++) {
+            if (i - 3 >= 0) {
+                ans[i] = Math.max(ans[i - 2] + nums[i], ans[i - 3] + nums[i]);
+            } else {
+                ans[i] = ans[i - 2] + nums[i];
+            }
+            maxVal = Math.max(maxVal, ans[i]);
+        }
+        return maxVal == INF ? 0 : maxVal;
+    }
+}
