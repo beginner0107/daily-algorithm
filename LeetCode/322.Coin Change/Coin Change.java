@@ -2,38 +2,20 @@
 // Link: https://leetcode.com/problems/coin-change
 
 import java.util.*;
-
 class Solution {
     public int coinChange(int[] coins, int amount) {
-        if (amount == 0) return 0;
-        boolean visited[] = new boolean[amount + 1];
-
-        Queue<Integer> queue = new ArrayDeque<>();
-        for (int coin : coins) {
-            if (coin == amount) return 1;
-            if (coin > amount) continue;
-            queue.add(coin);
-            visited[coin] = true;
-        }
-
-        int answer = 1;
-        while (!queue.isEmpty()) {
-            int qSize = queue.size();
-            for (int i = 0; i < qSize; i++) {
-                Integer n = queue.poll();
-                visited[n] = true;
-                for (int coin : coins) {
-                    if (n + coin > amount) continue;
-                    if (n + coin == amount) return ++answer;
-                    if (!visited[n + coin]) {
-                        visited[n + coin] = true;
-                        queue.add(n + coin);
-                    }
-                }
+        int[] arr = new int[amount + 1];
+        int INF = amount + 1;
+        Arrays.fill(arr, INF);
+        arr[0] = 0;
+        for (int i = 1; i <= amount; i++) {
+            
+            for (int coin : coins) {
+                if (i - coin < 0) continue;
+                arr[i] = Math.min(arr[i - coin] + 1, arr[i]);
             }
-            answer++;
         }
 
-        return -1;
+        return arr[amount] == INF ? -1 : arr[amount];
     }
 }
