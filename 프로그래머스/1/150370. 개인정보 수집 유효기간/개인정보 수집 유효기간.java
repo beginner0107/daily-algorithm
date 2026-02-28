@@ -1,44 +1,39 @@
 import java.util.*;
-
 class Solution {
+    // 이거 날짜를 일로 계산하면 될듯
     public int[] solution(String today, String[] terms, String[] privacies) {
-        Map<String, Integer> termMap = new HashMap<>();
-        for (String term : terms) {
-            String[] termParts = term.split(" ");
-            termMap.put(termParts[0], (Integer.valueOf(termParts[1]) * 28));
-        }
-
-        int todayTotalDays = toNumber(today);
-        List<Integer> expiredIndices = new ArrayList<>();
-        int index = 0;
-
-        for (String privacy : privacies) {
-            String[] privacyParts = privacy.split(" "); 
-            
-            int termDurationDays = termMap.get(privacyParts[1]);
-            int privacyStartTotalDays = toNumber(privacyParts[0]) + termDurationDays;
-            
-            if (todayTotalDays >= privacyStartTotalDays) {
-                expiredIndices.add(index);
-            }
-            index++;
-        }
+        List<Integer> ans = new ArrayList<>();
+        int parseToday = dateToSec(today);
         
-        Collections.sort(expiredIndices);
-        int[] answer = new int[expiredIndices.size()];
-        int answerIdx = 0;
-        for (int expiredIdx : expiredIndices) {
-            answer[answerIdx] = expiredIdx + 1;
-            answerIdx++;
+        // 아예 달수를 일로 바꿔서 넣어주고
+        Map<Character, Integer> map = new HashMap<>();
+        for (String tm : terms) {
+            String[] arr = tm.split(" ");
+            map.put(arr[0].charAt(0), Integer.parseInt(arr[1]) * 28);
+        }
+        int st = 1;
+        for (String pv : privacies) {
+            String arr[] = pv.split(" ");
+            String ymd = arr[0];
+            char tm = arr[1].charAt(0);
+            int pvTime = dateToSec(ymd) + map.get(tm); // 약관 최대 일자
+            if (parseToday >= pvTime) {
+                ans.add(st);
+            }
+            st++;
+        }
+        int[] answer = new int[ans.size()];
+        for (int i = 0; i < ans.size(); i++) {
+            answer[i] = ans.get(i);
         }
         return answer;
     }
     
-    public int toNumber(String yyyyMmdd) {
-        String[] dateParts = yyyyMmdd.split("\\.");
-        int year = Integer.valueOf(dateParts[0]);
-        int month = Integer.valueOf(dateParts[1]);
-        int day = Integer.valueOf(dateParts[2]);
-        return (year * 12 * 28) + (month * 28) + day;
+    public int dateToSec(String date) {
+        String[] str = date.split("\\.");
+        int year = Integer.parseInt(str[0]) * 12 * 28;
+        int month = Integer.parseInt(str[1]) * 28;
+        int day = Integer.parseInt(str[2]);
+        return year + month + day;
     }
 }
