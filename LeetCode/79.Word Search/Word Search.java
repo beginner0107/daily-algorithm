@@ -3,27 +3,43 @@
 
 import java.util.*;
 class Solution {
-    char[][]board;
-    char[] word;
+    char[][] board;
+    char[] words;
+    int[] dx = {0, 0, 1, -1};
+    int[] dy = {1, -1, 0, 0};
     public boolean exist(char[][] board, String word) {
         this.board = board;
-        this.word = word.toCharArray();
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[0].length; j++) {
-                if (board[i][j] != this.word[0]) continue;
-                if (dfs(0, i, j)) return true;
+        words = word.toCharArray();
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[row].length; col++) {
+                if (words[0] == board[row][col]) {
+                    if (dfs(row, col, 0)) {
+                        return true;
+                    }
+                }
             }
         }
         return false;
     }
 
-    public boolean dfs(int index, int x, int y) {
-        if (index == word.length) return true;
-        if (x < 0 || x >= board.length || y < 0 || y >= board[0].length || board[x][y] != word[index]) return false;
-        char temp = board[x][y];
-        board[x][y] = '.';
-        boolean isOk = dfs(index + 1, x + 1, y) || dfs(index + 1, x - 1, y) || dfs(index + 1, x, y + 1) || dfs(index + 1, x, y - 1);
-        board[x][y] = temp;
-        return isOk;
+    public boolean dfs(int row, int col, int wordIdx) {
+        if (wordIdx == words.length - 1) return true;
+        char temp = board[row][col];
+        board[row][col] = '.';
+        for (int i = 0; i < 4; i++) {
+            int tr = row + dx[i];
+            int tc = col + dy[i];
+            int wIdx = wordIdx + 1;
+            if (tr < 0 || tr >= board.length || tc < 0 || tc >= board[row].length) continue;
+            if (wIdx < words.length) {
+                if (board[tr][tc] == words[wIdx]) {
+                    if (dfs(tr, tc, wIdx)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        board[row][col] = temp;
+        return false;
     }
 }
